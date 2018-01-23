@@ -4,6 +4,18 @@
 # (c) Jonas Bunevicius, 2017 
 #
 
+################## chk_os_version() #####################
+chk_os_version() {
+   if [ $1 -eq 0 ]
+   then
+      echo
+      echo "Sorry, script supports only CentOS/RHEL based systems..."
+      echo
+      exit 1
+   fi
+}
+#########################################################
+
 ################# chk_subnet_input() ####################
 chk_subnet_input() {
    mask=$(echo $1 | awk -F '/' '{print $2}')
@@ -83,6 +95,8 @@ calc_boundry() {
    wildcard=$(((2 ** ($1 - $2)) - 1))
 }
 ##########################################################
+
+chk_os_version $(cat /etc/*-release | grep -i centos | wc -l)
 
 netmask=255.255.255.255
 
