@@ -96,14 +96,17 @@ calc_boundry() {
 }
 ##########################################################
 
+RED="\e[91m"
+NC="\e[0m"
+
 chk_os_version $(cat /etc/*-release | grep -i centos | wc -l)
 
 netmask=255.255.255.255
 
 echo
-echo ">>> Please enter IP(s) with netmask (e.g. 192.168.100.0/25) <<<"
-echo ">>>    Each new IP ranges please write from the new line    <<<"
-echo ">>> When you done, hit Ctrl-D on a blank line to stop input <<<"
+echo -e "${RED}>>>${NC} Please enter IP(s) with netmask (e.g. 192.168.100.0/25) ${RED}<<<${NC}"
+echo -e "${RED}>>>${NC}    Each new IP ranges please write from the new line    ${RED}<<<${NC}"
+echo -e "${RED}>>>${NC} When you done, hit Ctrl-D on a blank line to stop input ${RED}<<<${NC}"
 echo
 
 readarray -t subnet
