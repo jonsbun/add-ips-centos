@@ -1,6 +1,6 @@
 # Add IP Addresses Range to CentOS
 
-Script which allows you simple bind IPs ranges to CentOS/RHEL based Linux system. All provided ranges will be placed in the `/etc/sysconfig/network-scripts` directory using separate scripts and `ifcfg-eth0-rangeX` naming system (where X is a unique number corresponding to a specific range). Keep in mind that this script allows to add multiple IPs ranges at once. However, script supports not bigger than /24 ranges at this moment.
+Script which allows you simple bind IPs ranges to CentOS/RHEL based Linux system. All provided ranges will be placed in the `/etc/sysconfig/network-scripts` directory using separate scripts and `ifcfg-eth0-rangeX` naming system (where X is a unique number corresponding to a specific range). Keep in mind that this script allows to add multiple IPs ranges at once. However, script supports not bigger than /16 ranges at this moment.
 
 ## How to Use
 

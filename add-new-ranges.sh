@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Simple way to add IPs ranges to CentOS/RHEL system
-# (c) Jonas Bunevicius, 2017 
+# (c) Jonas Bunevicius, 2018 
 #
 
 ################## chk_os_version() #####################
@@ -21,13 +21,13 @@ chk_subnet_input() {
    mask=$(echo $1 | awk -F '/' '{print $2}')
    if [[ $mask =~ ^[0-9]+$ ]]
    then
-      if [ $mask -lt 24 ]
+      if [ $mask -lt 16 ]
       then
          echo "Range $1 not supported yet..."
          exit 1
       elif [ $mask -gt 31 ]
       then
-         echo "Range $1 subnet is invalid..."
+         echo "Range $1 is invalid..."
          exit 1
       fi
    else
@@ -56,10 +56,9 @@ upd_clonenum_start() {
       fi
       already_checked=1
    else
-      let clonenum_start+=$step
+      let clonenum_start+=$prv_step
    fi
-
-   step=$hosts
+   prv_step=$step
 }
 ##########################################################
 
@@ -90,6 +89,14 @@ add_ifcfg-range() {
 
 #################### calc_boundry() ######################
 calc_boundry() {
+   ips=$((2 ** (32 - $2)))
+   if [ $ips -gt 256 ]
+   then 
+      step=256
+   else
+      step=$ips
+   fi
+   
    hosts=$((2 ** ($1 - $2)))
    boundry=$((($3 / $hosts) * $hosts))
    wildcard=$(((2 ** ($1 - $2)) - 1))
@@ -119,6 +126,7 @@ done
 
 for ((i=0; i < ${#subnet[@]}; i++))
 do
+
    mask=$(echo ${subnet[i]} | awk -F '/' '{print $2}')
    ipaddr=$(echo ${subnet[i]} | awk -F '/' '{print $1}')
    oct1=$(echo $ipaddr | awk -F '.' '{print $1}')
@@ -126,13 +134,32 @@ do
    oct3=$(echo $ipaddr | awk -F '.' '{print $3}')
    oct4=$(echo $ipaddr | awk -F '.' '{print $4}')
 
-   calc_boundry 32 $mask $oct4
-   ipaddr=$(echo $ipaddr | cut -d '.' -f1-3)
-   ipaddr_start=${ipaddr}.${boundry}
-   oct4=$(($boundry + $wildcard))
-   ipaddr_end=${ipaddr}.${oct4}
-   upd_clonenum_start
-   add_ifcfg-range
+   case $mask in
+      3[0-1]|2[4-9])
+         calc_boundry 32 $mask $oct4
+         ipaddr=$(echo $ipaddr | cut -d '.' -f1-3)
+         ipaddr_start=${ipaddr}.${boundry}
+         oct4=$(($boundry + $wildcard))
+         ipaddr_end=${ipaddr}.${oct4}
+         upd_clonenum_start
+         add_ifcfg-range
+         ;;
+      2[0-3]|1[6-9])
+         calc_boundry 24 $mask $oct3
+         ipaddr=$(echo $ipaddr | cut -d '.' -f1-2)
+	 while [ $wildcard -ge 0 ]
+         do
+            ipaddr_start=${ipaddr}.${boundry}.0
+            ipaddr_end=$(echo $ipaddr_start | cut -d '.' -f1-2)
+            ipaddr_end=${ipaddr_end}.${boundry}.255
+            upd_clonenum_start
+            add_ifcfg-range
+            let boundry++
+            let wildcard--
+         done
+         ;;
+   esac
+
 done
 
 /etc/init.d/network restart
